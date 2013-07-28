@@ -290,8 +290,11 @@ static int tegra_fb_pan_display(struct fb_var_screeninfo *var,
 	 * Do nothing if display parameters are same as current values.
 	 */
 	if ((var->xoffset == tegra_fb->curr_xoffset) &&
-	    (var->yoffset == tegra_fb->curr_yoffset))
+	    (var->yoffset == tegra_fb->curr_yoffset) &&
+		(var->reserved[2] == 0))
 		return 0;
+
+	var->reserved[2] = 0;
 
 	if (!tegra_fb->win->cur_handle) {
 		flush_start = info->screen_base + (var->yoffset * info->fix.line_length);

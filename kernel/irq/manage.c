@@ -497,6 +497,7 @@ int irq_set_irq_wake(unsigned int irq, unsigned int on)
 	/* wakeup-capable irqs can be shared between drivers that
 	 * don't need to have the same sleep mode behaviors.
 	 */
+	printk(KERN_DEBUG "irq %d set to %d\n", irq, on);
 	if (on) {
 		if (desc->wake_depth++ == 0) {
 			ret = set_irq_wake_real(irq, on);

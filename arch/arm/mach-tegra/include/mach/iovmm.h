@@ -355,7 +355,7 @@ static inline void tegra_iovmm_resume(void)
 #include <linux/dma-mapping.h>
 #include <linux/dma-direction.h>
 
-#include <asm/dma-iommu.h>
+//#include <asm/dma-iommu.h>
 
 #define tegra_iovmm_alloc_client(d, s, m)	tegra_iommu_alloc_client(d)
 #define tegra_iovmm_free_client(c)		tegra_iommu_free_client(c)

@@ -226,8 +226,8 @@ static void tegra_pm_irq_syscore_resume_helper(
 			continue;
 		}
 
-		pr_info("Resume caused by WAKE%d, %s\n", (wake + 32 * index),
-			desc->action->name);
+		pr_info("Resume caused by WAKE%d, %s, irq %d\n", (wake + 32 * index),
+			desc->action->name, irq);
 
 		tegra_wake_irq_count[wake + 32 * index]++;
 
