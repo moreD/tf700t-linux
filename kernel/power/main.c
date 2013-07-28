@@ -314,8 +314,29 @@ power_attr(wake_lock);
 power_attr(wake_unlock);
 #endif
 
+
+int pm_current_state;
+
+static ssize_t
+pm_current_state_show(struct kobject *kobj, struct kobj_attribute *attr,
+			char *buf)
+{
+	return sprintf(buf, "%d\n", pm_current_state);
+}
+
+static ssize_t
+pm_current_state_store(struct kobject *kobj, struct kobj_attribute *attr,
+			const char *buf, size_t n)
+{
+	return -EINVAL;
+}
+
+power_attr(pm_current_state);
+
+
 static struct attribute * g[] = {
 	&state_attr.attr,
+	&pm_current_state_attr.attr,
 #ifdef CONFIG_PM_TRACE
 	&pm_trace_attr.attr,
 	&pm_trace_dev_match_attr.attr,

@@ -27,6 +27,7 @@
 
 #include "power.h"
 
+extern int pm_current_state;
 const char *const pm_states[PM_SUSPEND_MAX] = {
 #ifdef CONFIG_EARLYSUSPEND
 	[PM_SUSPEND_ON]		= "on",

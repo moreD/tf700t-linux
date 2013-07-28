@@ -49,6 +49,7 @@ enum {
 };
 static int state;
 extern  void unlock_cpu_lp_mode(void);
+extern int pm_current_state;
 void register_early_suspend(struct early_suspend *handler)
 {
 	struct list_head *pos;
@@ -113,8 +114,11 @@ static void early_suspend(struct work_struct *work)
 	sys_sync();
 abort:
 	spin_lock_irqsave(&state_lock, irqflags);
-	if (state == SUSPEND_REQUESTED_AND_SUSPENDED)
+	if (state == SUSPEND_REQUESTED_AND_SUSPENDED) {
+		/* Now power state is going to be S3 */
+		pm_current_state = 3;
 		wake_unlock(&main_wake_lock);
+	}
 	spin_unlock_irqrestore(&state_lock, irqflags);
 }
 
@@ -181,6 +185,10 @@ void request_suspend_state(suspend_state_t new_state)
 	} else if (old_sleep && new_state == PM_SUSPEND_ON) {
 		state &= ~SUSPEND_REQUESTED;
 		wake_lock(&main_wake_lock);
+
+		/* Now power state is S0 */
+		pm_current_state = 0;
+
 		queue_work(suspend_work_queue, &late_resume_work);
 	}
 	requested_suspend_state = new_state;
