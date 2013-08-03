@@ -1068,7 +1068,7 @@ static int __devinit sdhci_tegra_probe(struct platform_device *pdev)
 		if (rc < 0)
 			dev_err(mmc_dev(host->mmc),
 				"SD card wake-up event registration"
-					"failed with eroor: %d\n", rc);
+					"failed with error: %d\n", rc);
 
 	} else if (plat->mmc_data.register_status_notify) {
 		plat->mmc_data.register_status_notify(sdhci_status_notify_cb, host);

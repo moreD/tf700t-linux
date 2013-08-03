@@ -49,6 +49,7 @@ struct bluedroid_pm_data {
 
 struct proc_dir_entry *proc_bt_dir, *bluetooth_sleep_dir;
 static bool bluedroid_pm_blocked = 1;
+static bool user_pm_blocked = 0;
 
 #ifdef CONFIG_DEBUG_ASUS
 struct bluedroid_pm_data *bluedroid_pm_proc;
@@ -322,7 +323,7 @@ static int bluedroid_pm_suspend(struct platform_device *pdev,
 		bluedroid_pm->is_blocked = 0;
 	}
 
-	if (bluedroid_pm->host_wake)
+	if (bluedroid_pm->host_wake && !user_pm_blocked)
 		if (!bluedroid_pm->is_blocked || !bluedroid_pm_blocked)
 			enable_irq_wake(bluedroid_pm->host_wake_irq);
 
@@ -341,7 +342,7 @@ static int bluedroid_pm_resume(struct platform_device *pdev)
 		bluedroid_pm->is_blocked = 0;
 	}
 
-	if (bluedroid_pm->host_wake)
+	if (bluedroid_pm->host_wake && !user_pm_blocked)
 		if (!bluedroid_pm->is_blocked || !bluedroid_pm_blocked)
 			disable_irq_wake(bluedroid_pm->host_wake_irq);
 
@@ -402,6 +403,39 @@ static int lpm_read_proc(char *page, char **start, off_t offset,
 }
 #endif
 
+static int block_read_proc(char *page, char **start, off_t offset,
+					int count, int *eof, void *data)
+{
+	*eof = 1;
+	return sprintf(page, "bluetooth blocked: %d\n", user_pm_blocked);
+}
+
+static int block_write_proc(struct file *file, const char *buffer,
+					unsigned long count, void *data)
+{
+	char *buf;
+
+	if (count < 1)
+		return -EINVAL;
+	
+	buf = kmalloc(count, GFP_KERNEL);
+	if (!buf)
+		return -ENOMEM;
+
+	if (copy_from_user(buf, buffer, count)) {
+		kfree(buf);
+		return -EFAULT;
+	}
+
+	if (buf[0] == '0')
+		user_pm_blocked = 0;
+	else
+		user_pm_blocked = 1;
+
+	kfree(buf);
+	return count;
+}
+
 static int lpm_write_proc(struct file *file, const char *buffer,
 					unsigned long count, void *data)
 {
@@ -446,6 +480,7 @@ static int lpm_write_proc(struct file *file, const char *buffer,
 static void remove_bt_proc_interface(void)
 {
 	remove_proc_entry("lpm", bluetooth_sleep_dir);
+	remove_proc_entry("block", bluetooth_sleep_dir);
 #ifdef CONFIG_DEBUG_ASUS
 	remove_proc_entry("hostwake", bluetooth_sleep_dir);
 #endif
@@ -480,6 +515,15 @@ static int create_bt_proc_interface(void *drv_data)
 	ent->read_proc	= lpm_read_proc;
 	ent->write_proc = lpm_write_proc;
 
+	ent = create_proc_entry("block", 0622, bluetooth_sleep_dir);
+	if (ent == NULL) {
+		pr_err("Unable to create /proc/%s/block entry", PROC_DIR);
+		retval = -ENOMEM;
+		goto fail;
+	}
+	ent->read_proc	= block_read_proc;
+	ent->write_proc = block_write_proc;
+
 #ifdef CONFIG_DEBUG_ASUS
 	/* Read-only "hostwake" entry */
 	if (create_proc_read_entry("hostwake", 0, bluetooth_sleep_dir,
@@ -494,6 +538,7 @@ static int create_bt_proc_interface(void *drv_data)
 	return 0;
 fail:
 	remove_proc_entry("lpm", bluetooth_sleep_dir);
+	remove_proc_entry("block", bluetooth_sleep_dir);
 #ifdef CONFIG_DEBUG_ASUS
 	remove_proc_entry("hostwake", bluetooth_sleep_dir);
 #endif
