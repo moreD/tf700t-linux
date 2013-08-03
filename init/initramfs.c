@@ -424,8 +424,6 @@ static char * __init unpack_to_rootfs(char *buf, unsigned len)
 
 	if (!header_buf || !symlink_buf || !name_buf)
 		panic("can't allocate buffers");
-	else
-		printk(KERN_INFO "initramfs buffer allocated: 0x%p 0x%p 0x%p\n", header_buf, symlink_buf, name_buf);
 
 	state = Start;
 	this_header = 0;
