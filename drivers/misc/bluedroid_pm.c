@@ -429,8 +429,12 @@ static int block_write_proc(struct file *file, const char *buffer,
 
 	if (buf[0] == '0')
 		user_pm_blocked = 0;
-	else
+	else if (buf[0] == '1')
 		user_pm_blocked = 1;
+	else {
+		kfree(buf);
+		return -EINVAL;
+	}
 
 	kfree(buf);
 	return count;
